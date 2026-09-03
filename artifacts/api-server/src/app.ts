@@ -29,6 +29,10 @@ app.use(cors());
 app.use(express.json({ limit: "35mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/", (req, res) => {
+  res.send("Backend server is running correctly.");
+});
+
 app.use("/api", router);
 
 export default app;
