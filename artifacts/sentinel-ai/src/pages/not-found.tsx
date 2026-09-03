@@ -1,0 +1,6 @@
+import { Link } from 'wouter';
+import { ArrowLeft, Compass } from 'lucide-react';
+
+export default function NotFound() {
+  return <div className="sentinel-grid flex min-h-[100dvh] items-center justify-center bg-background px-5"><div className="w-full max-w-lg border border-border bg-card p-7 shadow-[0_16px_40px_rgba(30,44,62,.06)] sm:p-10"><div className="mb-8 flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center bg-primary text-primary-foreground"><Compass size={16} /></span><span className="font-mono text-[10px] uppercase tracking-[.2em]">Sentinel / route map</span></div><span className="font-mono text-[10px] text-muted-foreground">ERR 404</span></div><div className="border-l-2 border-chart-3 pl-4"><h1 className="text-3xl font-semibold tracking-[-.05em]">Signal not found.</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">This route is outside the current workspace. Return to the overview and pick up the thread.</p></div><Link href="/" data-testid="link-return-overview" className="mt-8 inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-xs text-primary-foreground transition-colors hover:bg-accent"><ArrowLeft size={14} />Return to overview</Link></div></div>;
+}

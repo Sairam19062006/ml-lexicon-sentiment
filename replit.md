@@ -1,6 +1,6 @@
-# [Project name]
+# Sentinel AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Sentinel AI classifies social media text, monitors sentiment signals, benchmarks NLP models, and explores keyword analytics.
 
 ## Run & Operate
 
@@ -22,15 +22,23 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/sentinel-ai` — responsive React/Vite application with dashboard, analyzer, dataset upload, benchmarks, analytics, and architecture views
+- `artifacts/api-server/src/routes/intelligence.ts` — sentiment classification and intelligence endpoints
+- `lib/api-spec/openapi.yaml` — source of truth for the API contract
+- `artifacts/sentinel-ai/src/index.css` — Sentinel AI theme and shared visual tokens
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first build uses deterministic hybrid-style lexical scoring so the analysis flow is functional without requiring an external model or API key.
+- Dashboard and benchmark values are seeded research fixtures exposed through typed read endpoints, while ad hoc analysis and uploads are processed live.
+- Uploads use a JSON envelope so the typed client can handle CSV, JSON, and XLSX content through the shared API route; CSV and JSON are parsed server-side and XLSX is accepted with a preview fallback.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Overview dashboard with sentiment health, analyzed volume, positive share, seven-day movement, platform mix, and recent signal feed
+- Interactive classification with five selectable model families, confidence, polarity, keyword evidence, and explanation
+- Dataset preview and batch classification for CSV, JSON, and XLSX uploads up to the configured request limit
+- Model benchmark comparison, keyword landscape, NLP pipeline architecture, and project metadata
 
 ## User preferences
 

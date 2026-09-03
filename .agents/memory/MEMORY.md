@@ -1,0 +1,1 @@
+- [OpenAPI Zod compatibility](openapi-zod-compatibility.md) — pinned Zod 3 is incompatible with generated `zod.int()` validators

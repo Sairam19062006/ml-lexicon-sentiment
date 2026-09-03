@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Sentinel AI sentiment intelligence API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: intelligence
+    description: Sentiment intelligence operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,98 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [intelligence]
+      summary: Get dashboard intelligence
+      responses:
+        "200":
+          description: Dashboard summary and chart data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /signals:
+    get:
+      operationId: getSignals
+      tags: [intelligence]
+      summary: Get recent sentiment signals
+      responses:
+        "200":
+          description: Recent signal feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Signal"
+  /analyze:
+    post:
+      operationId: analyzeText
+      tags: [intelligence]
+      summary: Classify one social media text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeInput"
+      responses:
+        "200":
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "400":
+          description: Invalid input
+  /upload:
+    post:
+      operationId: uploadDataset
+      tags: [intelligence]
+      summary: Parse and classify an uploaded dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadInput"
+      responses:
+        "200":
+          description: Batch classification preview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResult"
+        "400":
+          description: Invalid upload
+  /benchmarks:
+    get:
+      operationId: getBenchmarks
+      tags: [intelligence]
+      summary: Get model benchmark results
+      responses:
+        "200":
+          description: Benchmark comparison
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Benchmark"
+  /analytics:
+    get:
+      operationId: getAnalytics
+      tags: [intelligence]
+      summary: Get keyword and topic analytics
+      responses:
+        "200":
+          description: Keyword analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +127,211 @@ components:
           type: string
       required:
         - status
+    Sentiment:
+      type: string
+      enum: [positive, negative, neutral]
+    Model:
+      type: string
+      enum: [logistic-regression, naive-bayes, svm, vader, textblob]
+    SentimentCounts:
+      type: object
+      properties:
+        total:
+          type: number
+        positive:
+          type: number
+        negative:
+          type: number
+        neutral:
+          type: number
+        positivePct:
+          type: number
+        negativePct:
+          type: number
+        neutralPct:
+          type: number
+      required: [total, positive, negative, neutral, positivePct, negativePct, neutralPct]
+    TrendPoint:
+      type: object
+      properties:
+        label:
+          type: string
+        positive:
+          type: number
+        negative:
+          type: number
+        neutral:
+          type: number
+      required: [label, positive, negative, neutral]
+    PlatformCount:
+      type: object
+      properties:
+        platform:
+          type: string
+        positive:
+          type: number
+        negative:
+          type: number
+        neutral:
+          type: number
+      required: [platform, positive, negative, neutral]
+    Dashboard:
+      type: object
+      properties:
+        counts:
+          $ref: "#/components/schemas/SentimentCounts"
+        trend:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrendPoint"
+        platforms:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlatformCount"
+        healthScore:
+          type: number
+        analyzedToday:
+          type: number
+        activeModels:
+          type: number
+      required: [counts, trend, platforms, healthScore, analyzedToday, activeModels]
+    Signal:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [spike, cluster, insight]
+        title:
+          type: string
+        detail:
+          type: string
+        platform:
+          type: string
+        sentiment:
+          $ref: "#/components/schemas/Sentiment"
+        time:
+          type: string
+        severity:
+          type: string
+          enum: [high, medium, low]
+      required: [id, type, title, detail, platform, sentiment, time, severity]
+    AnalyzeInput:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        model:
+          $ref: "#/components/schemas/Model"
+      required: [text, model]
+    Keyword:
+      type: object
+      properties:
+        word:
+          type: string
+        count:
+          type: number
+        sentiment:
+          $ref: "#/components/schemas/Sentiment"
+      required: [word, count, sentiment]
+    AnalysisResult:
+      type: object
+      properties:
+        sentiment:
+          $ref: "#/components/schemas/Sentiment"
+        confidence:
+          type: number
+        polarity:
+          type: number
+        model:
+          $ref: "#/components/schemas/Model"
+        keywords:
+          type: array
+          items:
+            $ref: "#/components/schemas/Keyword"
+        explanation:
+          type: string
+      required: [sentiment, confidence, polarity, model, keywords, explanation]
+    UploadInput:
+      type: object
+      properties:
+        fileName:
+          type: string
+        fileType:
+          type: string
+        content:
+          type: string
+          description: UTF-8 text or base64-encoded file content
+      required: [fileName, fileType, content]
+    UploadRow:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        platform:
+          type: string
+        sentiment:
+          $ref: "#/components/schemas/Sentiment"
+        confidence:
+          type: number
+      required: [id, text, platform, sentiment, confidence]
+    UploadResult:
+      type: object
+      properties:
+        fileName:
+          type: string
+        totalRows:
+          type: number
+        processedRows:
+          type: number
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/UploadRow"
+        summary:
+          $ref: "#/components/schemas/SentimentCounts"
+      required: [fileName, totalRows, processedRows, rows, summary]
+    Benchmark:
+      type: object
+      properties:
+        model:
+          $ref: "#/components/schemas/Model"
+        name:
+          type: string
+        family:
+          type: string
+        accuracy:
+          type: number
+        precision:
+          type: number
+        recall:
+          type: number
+        f1:
+          type: number
+      required: [model, name, family, accuracy, precision, recall, f1]
+    Analytics:
+      type: object
+      properties:
+        keywords:
+          type: array
+          items:
+            $ref: "#/components/schemas/Keyword"
+        highlights:
+          type: object
+          properties:
+            positiveTopic:
+              type: string
+            negativeTopic:
+              type: string
+            trendingKeyword:
+              type: string
+          required: [positiveTopic, negativeTopic, trendingKeyword]
+        totalKeywords:
+          type: number
+      required: [keywords, highlights, totalKeywords]
 

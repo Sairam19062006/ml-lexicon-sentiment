@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Sentinel AI"
+description = "A research-grade social media sentiment intelligence workspace for classifying posts, benchmarking NLP models, uploading datasets, and exploring sentiment trends."
+version = "1.0.0"
+id = "artifacts/sentinel-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23148
+
+[services.development]
+run = "pnpm --filter @workspace/sentinel-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sentinel-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/sentinel-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23148"
+BASE_PATH = "/"
