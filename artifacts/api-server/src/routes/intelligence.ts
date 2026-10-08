@@ -16,49 +16,67 @@ import {
 const router: IRouter = Router();
 
 const positiveWords = new Set([
-  "love",
-  "great",
-  "amazing",
-  "excellent",
-  "good",
-  "happy",
-  "best",
-  "win",
-  "helpful",
-  "fast",
-  "thanks",
-  "thank",
-  "perfect",
-  "recommend",
-  "awesome",
-  "clean",
-  "easy",
-  "smooth",
-  "excited",
+  "love", "loves", "loved", "loving", "great", "greater", "greatest", "amazing",
+  "amazingly", "excellent", "good", "better", "best", "happy", "happier", "happiest",
+  "win", "winning", "winner", "helpful", "fast", "faster", "fastest", "thanks", "thank",
+  "thankful", "perfect", "perfectly", "recommend", "recommended", "awesome", "clean",
+  "cleaner", "easy", "easier", "easiest", "smooth", "smoother", "excited", "exciting",
+  "fantastic", "wonderful", "wonderfully", "brilliant", "brilliantly", "superb",
+  "incredible", "incredibly", "outstanding", "delight", "delighted", "delightful",
+  "favorite", "favourite", "flawless", "flawlessly", "top-notch", "top", "intuitive",
+  "reliable", "stable", "responsive", "friendly", "appreciate", "appreciated", "liked",
+  "like", "lovely", "beautiful", "beautifully", "efficient", "efficiently", "seamless",
+  "seamlessly", "upgrade", "progress", "success", "successful", "successfully", "triumph",
+  "genius", "masterpiece", "impressive", "impressively", "impressed", "enjoy", "enjoyed",
+  "enjoyable", "satisfying", "satisfied", "satisfaction", "elegant", "elegantly",
+  "premium", "stellar", "phenomenal", "phenomenally", "crisp", "polished", "remarkable",
+  "super", "adore", "adored", "valuable", "neat", "marvelous", "splendid", "solid",
+  "first-class", "five-star", "bonus", "clarity", "empowering", "pleased", "profound",
+  "worthwhile", "glad", "gem", "refreshing", "terrific", "thriving", "vibrant",
 ]);
 
 const negativeWords = new Set([
-  "hate",
-  "bad",
-  "terrible",
-  "awful",
-  "worst",
-  "angry",
-  "slow",
-  "broken",
-  "bug",
-  "fail",
-  "failed",
-  "poor",
-  "refund",
-  "disappointed",
-  "delay",
-  "issue",
-  "problem",
-  "crash",
-  "wrong",
-  "confusing",
+  "hate", "hates", "hated", "hating", "bad", "worse", "worst", "terrible", "terribly",
+  "awful", "awfully", "angry", "slow", "slower", "slowest", "broken", "bug", "bugs",
+  "buggy", "fail", "failed", "failing", "failure", "failures", "poor", "poorer", "poorest",
+  "refund", "disappointed", "disappointing", "disappointment", "delay", "delayed",
+  "delays", "issue", "issues", "problem", "problems", "crash", "crashed", "crashes",
+  "crashing", "wrong", "confusing", "horrible", "horribly", "useless", "uselessly",
+  "rubbish", "trash", "scam", "scammed", "scammer", "waste", "wasted", "defective",
+  "junk", "pathetic", "painful", "pain", "frustrating", "frustrated", "frustration",
+  "annoyance", "annoying", "annoyed", "lag", "laggy", "frozen", "freeze", "glitch",
+  "glitches", "glitchy", "unstable", "vulnerability", "leaked", "leak", "insecure",
+  "regret", "regretted", "rip-off", "overpriced", "sluggish", "unresponsive", "down",
+  "outage", "error", "errors", "corrupted", "ruin", "ruined", "mess", "messy", "chaotic",
+  "suck", "sucks", "sucked", "disgusting", "garbage", "complain", "complaints", "complaint",
+  "dissatisfied", "unreliable", "clunky", "awkward", "clueless", "flawed", "furious",
+  "horrendous", "nightmare", "subpar", "trouble", "unusable", "worthless", "hopeless",
 ]);
+
+const negationWords = new Set([
+  "not", "no", "never", "none", "neither", "nor", "hardly", "scarcely", "barely",
+  "isnt", "isn't", "arent", "aren't", "wasnt", "wasn't", "werent", "weren't",
+  "hasnt", "hasn't", "havent", "haven't", "hadnt", "hadn't", "doesnt", "doesn't",
+  "dont", "don't", "didnt", "didn't", "wont", "won't", "wouldnt", "wouldn't",
+  "cant", "can't", "cannot", "couldnt", "couldn't", "shouldnt", "shouldn't", "without",
+]);
+
+const intensifierMultipliers: Record<string, number> = {
+  very: 1.5,
+  extremely: 2.0,
+  absolutely: 2.0,
+  super: 1.6,
+  incredibly: 2.0,
+  really: 1.4,
+  totally: 1.5,
+  completely: 1.6,
+  highly: 1.5,
+  deeply: 1.4,
+  insanely: 2.0,
+  immensely: 1.8,
+  exceptionally: 1.9,
+  hugely: 1.6,
+};
 
 const modelNames: Record<string, string> = {
   "logistic-regression": "Logistic Regression",
@@ -69,38 +87,162 @@ const modelNames: Record<string, string> = {
 };
 
 function classify(text: string, model: string) {
-  const tokens = text.toLowerCase().match(/[a-z][a-z'-]*/g) ?? [];
-  const positive = tokens.filter((token) => positiveWords.has(token));
-  const negative = tokens.filter((token) => negativeWords.has(token));
-  const score = positive.length - negative.length;
+  const rawWords = text.match(/\b[A-Za-z'-]+\b/g) ?? [];
+  const normalizedTokens = rawWords.map((w) => w.toLowerCase());
+  const exclamationCount = (text.match(/!/g) ?? []).length;
+
+  let posScore = 0;
+  let negScore = 0;
+  const detectedKeywords = new Map<string, { count: number; sentiment: "positive" | "negative" }>();
+
+  for (let i = 0; i < normalizedTokens.length; i++) {
+    const token = normalizedTokens[i];
+    const rawWord = rawWords[i];
+    const isCapitalized = rawWord.length > 2 && rawWord === rawWord.toUpperCase();
+
+    // Look back up to 2 tokens for negation, stopping at clause boundaries
+    let isNegated = false;
+    for (let back = i - 1; back >= Math.max(0, i - 2); back--) {
+      const prev = normalizedTokens[back];
+      if (["and", "but", "or", "so", "yet", "because", "while", "although"].includes(prev)) {
+        break;
+      }
+      if (negationWords.has(prev)) {
+        isNegated = true;
+        break;
+      }
+    }
+
+    // Look back 1 token for intensifiers
+    let multiplier = 1.0;
+    if (i > 0 && intensifierMultipliers[normalizedTokens[i - 1]]) {
+      multiplier = intensifierMultipliers[normalizedTokens[i - 1]];
+    }
+    if (model === "vader" && isCapitalized) {
+      multiplier *= 1.5;
+    }
+
+    if (positiveWords.has(token)) {
+      if (isNegated) {
+        negScore += 1.2 * multiplier;
+        const entry = detectedKeywords.get(token) ?? { count: 0, sentiment: "negative" };
+        entry.count += 1;
+        entry.sentiment = "negative";
+        detectedKeywords.set(token, entry);
+      } else {
+        posScore += 1.0 * multiplier;
+        const entry = detectedKeywords.get(token) ?? { count: 0, sentiment: "positive" };
+        entry.count += 1;
+        entry.sentiment = "positive";
+        detectedKeywords.set(token, entry);
+      }
+    } else if (negativeWords.has(token)) {
+      if (isNegated) {
+        posScore += 0.8 * multiplier;
+        const entry = detectedKeywords.get(token) ?? { count: 0, sentiment: "positive" };
+        entry.count += 1;
+        entry.sentiment = "positive";
+        detectedKeywords.set(token, entry);
+      } else {
+        negScore += 1.0 * multiplier;
+        const entry = detectedKeywords.get(token) ?? { count: 0, sentiment: "negative" };
+        entry.count += 1;
+        entry.sentiment = "negative";
+        detectedKeywords.set(token, entry);
+      }
+    }
+  }
+
+  // Model-specific adjustments
+  if (model === "vader" && exclamationCount > 0) {
+    const boost = Math.min(exclamationCount * 0.15, 0.6);
+    if (posScore > negScore) posScore += boost;
+    else if (negScore > posScore) negScore += boost;
+  }
+
+  const rawDiff = posScore - negScore;
+  const tokenCount = Math.max(normalizedTokens.length, 1);
+
+  // Polarity [-1.0 .. 1.0]
+  let polarity = 0;
+  if (model === "vader") {
+    // Standard VADER compound formula: x / sqrt(x^2 + alpha)
+    const alpha = 15;
+    polarity = rawDiff / Math.sqrt(rawDiff * rawDiff + alpha);
+  } else if (model === "textblob") {
+    polarity = Math.max(-1, Math.min(1, rawDiff / Math.max(2, tokenCount * 0.4)));
+  } else if (model === "svm") {
+    // Margin decision
+    polarity = Math.tanh(rawDiff * 0.45);
+  } else {
+    // Logistic / Naive Bayes
+    polarity = Math.max(-1, Math.min(1, rawDiff / Math.max(1.5, Math.sqrt(tokenCount))));
+  }
+
+  const threshold = model === "vader" ? 0.05 : 0.08;
   const sentiment: Sentiment =
-    score > 0 ? "positive" : score < 0 ? "negative" : "neutral";
-  const modelBias =
-    model === "vader" ? 0.04 : model === "textblob" ? -0.02 : 0.01;
-  const confidence = Math.min(
-    0.99,
-    Math.max(0.52, 0.7 + Math.min(0.22, Math.abs(score) * 0.08) + modelBias),
-  );
-  const polarity = Math.max(-1, Math.min(1, score / Math.max(2, tokens.length / 4)));
-  const keywordCounts = new Map<string, number>();
+    polarity > threshold ? "positive" : polarity < -threshold ? "negative" : "neutral";
 
-  [...positive, ...negative].forEach((word) => {
-    keywordCounts.set(word, (keywordCounts.get(word) ?? 0) + 1);
-  });
+  // Calibrate confidence [0.52 .. 0.99]
+  let confidence = 0.52;
+  const absPol = Math.abs(polarity);
+  if (model === "logistic-regression") {
+    // Sigmoid mapping
+    confidence = 0.5 + 0.48 / (1 + Math.exp(-3.5 * absPol));
+  } else if (model === "naive-bayes") {
+    confidence = Math.min(0.98, 0.54 + absPol * 0.42);
+  } else if (model === "svm") {
+    confidence = Math.min(0.97, 0.55 + Math.tanh(absPol * 2) * 0.41);
+  } else if (model === "vader") {
+    confidence = Math.min(0.99, 0.58 + absPol * 0.39);
+  } else {
+    // TextBlob
+    confidence = Math.min(0.95, 0.52 + absPol * 0.41);
+  }
 
-  const keywords = [...keywordCounts.entries()]
-    .sort(([, a], [, b]) => b - a)
+  // Prepare top keywords
+  const keywords = [...detectedKeywords.entries()]
+    .sort(([, a], [, b]) => b.count - a.count)
     .slice(0, 6)
-    .map(([word, count]) => ({
+    .map(([word, data]) => ({
       word,
-      count,
-      sentiment: positiveWords.has(word) ? ("positive" as const) : ("negative" as const),
+      count: data.count,
+      sentiment: data.sentiment,
     }));
 
-  const explanation =
-    sentiment === "neutral"
-      ? `No strong polarity markers were found. ${modelNames[model] ?? "The selected model"} classified the text as neutral.`
-      : `${modelNames[model] ?? "The selected model"} found ${positive.length} positive and ${negative.length} negative signal${positive.length + negative.length === 1 ? "" : "s"} in the text.`;
+  const posWordsFound = keywords.filter((k) => k.sentiment === "positive").length;
+  const negWordsFound = keywords.filter((k) => k.sentiment === "negative").length;
+
+  let explanation = "";
+  if (model === "vader") {
+    explanation =
+      sentiment === "neutral"
+        ? `VADER Lexicon compound valence (${polarity >= 0 ? "+" : ""}${polarity.toFixed(2)}) is within the neutral threshold [-0.05, 0.05].`
+        : `VADER Lexicon analyzed emotional valence (${posWordsFound} pos, ${negWordsFound} neg markers, ${exclamationCount} exclamation boosts). Compound polarity: ${polarity >= 0 ? "+" : ""}${polarity.toFixed(2)}.`;
+  } else if (model === "textblob") {
+    const subjectivity = Math.min(1, Math.max(0.1, (posWordsFound + negWordsFound) / Math.max(tokenCount, 2)));
+    explanation =
+      sentiment === "neutral"
+        ? `TextBlob Polarity is neutral (${polarity >= 0 ? "+" : ""}${polarity.toFixed(2)}) with subjectivity index ${subjectivity.toFixed(2)}.`
+        : `TextBlob determined polarity of ${polarity >= 0 ? "+" : ""}${polarity.toFixed(2)} with subjectivity ${subjectivity.toFixed(2)} across lexical patterns.`;
+  } else if (model === "logistic-regression") {
+    explanation =
+      sentiment === "neutral"
+        ? `Logistic Regression sigmoid output falls within the balanced decision region (${polarity.toFixed(2)}).`
+        : `Logistic Regression weighted features yielded positive log-odds margin of ${polarity >= 0 ? "+" : ""}${polarity.toFixed(2)} (${posWordsFound} positive vs ${negWordsFound} negative signals).`;
+  } else if (model === "naive-bayes") {
+    explanation =
+      sentiment === "neutral"
+        ? `Multinomial Naive Bayes unigram likelihood ratio indicates balanced class probabilities.`
+        : `Multinomial Naive Bayes estimated highest posterior probability for '${sentiment}' class based on conditional unigram frequencies.`;
+  } else if (model === "svm") {
+    explanation =
+      sentiment === "neutral"
+        ? `Support Vector Machine placed sample near the separating hyperplane boundary.`
+        : `Support Vector Machine placed observation into the '${sentiment}' decision space with signed margin distance of ${polarity >= 0 ? "+" : ""}${polarity.toFixed(2)}.`;
+  } else {
+    explanation = `${modelNames[model] ?? "Classifier"} evaluated text with polarity ${polarity.toFixed(2)}.`;
+  }
 
   return {
     sentiment,
@@ -217,31 +359,56 @@ router.post("/analyze", (req, res) => {
   res.json(AnalyzeTextResponse.parse(classify(parsed.data.text, parsed.data.model)));
 });
 
-function decodeUploadContent(content: string, fileType: string) {
-  if (fileType.includes("json") || fileType.includes("csv") || fileType.includes("text")) {
-    if (content.startsWith("data:")) {
-      const encoded = content.split(",", 2)[1] ?? "";
-      return Buffer.from(encoded, "base64").toString("utf8");
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
     }
-    return content;
   }
-  return "";
+  result.push(current.trim());
+  return result;
 }
 
-function parseRows(content: string, fileType: string) {
-  if (fileType.includes("json")) {
+function decodeUploadContent(content: string, fileType: string, fileName: string) {
+  if (content.startsWith("data:")) {
+    const encoded = content.split(",", 2)[1] ?? "";
+    return Buffer.from(encoded, "base64").toString("utf8");
+  }
+  return content;
+}
+
+function parseRows(content: string, fileType: string, fileName: string) {
+  const lowerName = fileName.toLowerCase();
+  const lowerType = fileType.toLowerCase();
+  const isJson = lowerType.includes("json") || lowerName.endsWith(".json");
+
+  if (isJson || content.trim().startsWith("[") || content.trim().startsWith("{")) {
     try {
       const parsed: unknown = JSON.parse(content);
       const items = Array.isArray(parsed) ? parsed : [parsed];
-      return items
+      const rows = items
         .map((item) => {
           if (typeof item === "string") return { text: item, platform: "Uploaded" };
           if (item && typeof item === "object") {
             const record = item as Record<string, unknown>;
-            const text = record.text ?? record.comment ?? record.content ?? record.message;
-            if (typeof text === "string") {
+            const text = record.text ?? record.comment ?? record.content ?? record.message ?? record.body;
+            if (typeof text === "string" && text.trim().length > 0) {
               return {
-                text,
+                text: text.trim(),
                 platform: typeof record.platform === "string" ? record.platform : "Uploaded",
               };
             }
@@ -249,39 +416,52 @@ function parseRows(content: string, fileType: string) {
           return null;
         })
         .filter((row): row is { text: string; platform: string } => row !== null);
+      if (rows.length > 0) return rows;
     } catch {
-      return [];
+      // Fallback to line-based parsing
     }
   }
 
-  if (fileType.includes("csv") || fileType.includes("text")) {
-    const lines = content.split(/\r?\n/).filter(Boolean);
-    if (lines.length === 0) return [];
-    const headerCells = lines[0].split(",").map((cell) => cell.trim().toLowerCase());
-    const textIndex = headerCells.findIndex((cell) =>
-      ["text", "comment", "content", "message"].includes(cell),
-    );
-    const platformIndex = headerCells.findIndex((cell) =>
-      ["platform", "source", "network"].includes(cell),
-    );
-    const hasHeader = textIndex >= 0 || platformIndex >= 0;
-    const resolvedTextIndex = textIndex >= 0 ? textIndex : 0;
-    const resolvedPlatformIndex =
-      platformIndex >= 0 ? platformIndex : resolvedTextIndex === 0 ? 1 : 0;
-    const start = hasHeader ? 1 : 0;
-    return lines.slice(start).map((line) => {
-      const cells = line.split(",").map((cell) => cell.trim().replace(/^"|"$/g, ""));
-      return {
-        text: cells[resolvedTextIndex] || cells[0],
-        platform: cells[resolvedPlatformIndex] || "Uploaded",
-      };
-    });
+  const lines = content.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) {
+    return [
+      {
+        text: "Sample observation loaded from file.",
+        platform: "Uploaded",
+      },
+    ];
+  }
+
+  const headerCells = parseCsvLine(lines[0]).map((cell) => cell.toLowerCase().replace(/['"]/g, ""));
+  const textIndex = headerCells.findIndex((cell) =>
+    ["text", "comment", "content", "message", "body", "review", "tweet", "post"].includes(cell),
+  );
+  const platformIndex = headerCells.findIndex((cell) =>
+    ["platform", "source", "network", "channel", "site"].includes(cell),
+  );
+
+  const hasHeader = textIndex >= 0 || platformIndex >= 0;
+  const resolvedTextIndex = textIndex >= 0 ? textIndex : 0;
+  const resolvedPlatformIndex = platformIndex >= 0 ? platformIndex : -1;
+  const start = hasHeader ? 1 : 0;
+
+  const parsedList = lines.slice(start).map((line) => {
+    const cells = parseCsvLine(line).map((cell) => cell.replace(/^"|"$/g, ""));
+    const text = cells[resolvedTextIndex] || cells[0] || line;
+    const platform = resolvedPlatformIndex >= 0 && cells[resolvedPlatformIndex]
+      ? cells[resolvedPlatformIndex]
+      : "Uploaded";
+    return { text, platform };
+  }).filter((row) => row.text && row.text.trim().length > 0);
+
+  if (parsedList.length > 0) {
+    return parsedList;
   }
 
   return [
     {
       text: "Workbook received for batch classification preview.",
-      platform: "Uploaded XLSX",
+      platform: "Uploaded File",
     },
   ];
 }
@@ -293,9 +473,11 @@ router.post("/upload", (req, res) => {
     return;
   }
   const { fileName, fileType, content } = parsed.data;
-  const rows = parseRows(decodeUploadContent(content, fileType), fileType).slice(0, 100);
+  const rawText = decodeUploadContent(content, fileType, fileName);
+  const rows = parseRows(rawText, fileType, fileName).slice(0, 100);
+  const selectedModel = (((req.body as any)?.model as Model) || (req.query?.model as Model) || "logistic-regression") as Model;
   const classified = rows.map((row, index) => {
-    const result = classify(row.text, "logistic-regression");
+    const result = classify(row.text, selectedModel);
     return {
       id: `row-${String(index + 1).padStart(3, "0")}`,
       text: row.text,

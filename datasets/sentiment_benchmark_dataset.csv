@@ -1,0 +1,51 @@
+id,text,platform,groundTruth,category
+DS-001,"The new interface is extraordinarily fast, clean, and intuitive to navigate.","Twitter",positive,direct-praise
+DS-002,"ABSOLUTELY PHENOMENAL! This is by far the best update they have ever shipped!!!","Instagram",positive,punctuation-emphasis
+DS-003,"Customer support resolved my ticket within five minutes, extremely helpful and friendly.","Facebook",positive,intensifier
+DS-004,"I have zero complaints about the battery life, it hasn't drained unexpectedly once.","Reddit",positive,negation-negative
+DS-005,"Solid, reliable performance every single day. Highly recommend this tool to all developers.","LinkedIn",positive,direct-praise
+DS-006,"Super impressed with how smooth and responsive the charts feel on mobile.","YouTube",positive,direct-praise
+DS-007,"A true masterpiece of design, flawless typography and delightful interactions.","Twitter",positive,direct-praise
+DS-008,"Setup was quick and painless, worked out of the box in under two minutes.","Reddit",positive,direct-praise
+DS-009,"Cannot recommend this product enough, five-star experience from beginning to end!","Facebook",positive,direct-praise
+DS-010,"Loving the dark mode theme, elegant color palette and crystal clear contrast.","Instagram",positive,direct-praise
+DS-011,"The export feature is a huge win for our workflow, saved us countless hours.","LinkedIn",positive,direct-praise
+DS-012,"Brilliant documentation with clear examples, made onboarding a pleasure.","YouTube",positive,direct-praise
+DS-013,"Not bad at all, in fact it exceeded my expectations in every way.","Twitter",positive,negation-negative
+DS-014,"Superb stability under heavy load, no glitches observed during peak traffic.","Reddit",positive,direct-praise
+DS-015,"Really love the intuitive shortcuts and frictionless keyboard navigation!","Twitter",positive,direct-praise
+DS-016,"Fast, polished, and remarkably dependable software. Kudos to the engineering team.","LinkedIn",positive,direct-praise
+DS-017,"Wonderful customer care, they refunded the duplicate charge without any hassle.","Facebook",positive,direct-praise
+DS-018,"Easily the most satisfying developer tool I have tested this entire quarter.","YouTube",positive,direct-praise
+DS-019,"App crashed three times today during checkout, completely lost my shopping cart.","Twitter",negative,direct-complaint
+DS-020,"HORRIBLE UPDATE! Everything is lagging, broken, and practically unusable right now!!","Reddit",negative,punctuation-emphasis
+DS-021,"Extremely disappointed with the customer service, waited two weeks for no resolution.","Facebook",negative,intensifier
+DS-022,"The software is definitely not good, slow performance and constant memory leaks.","Twitter",negative,negation-positive
+DS-023,"Cannot recommend this service, total waste of money and full of annoying bugs.","LinkedIn",negative,direct-complaint
+DS-024,"Terrible delay on order shipment, support was totally useless and unhelpful.","Instagram",negative,intensifier
+DS-025,"Constant glitches after the latest patch, screen freezes whenever I click export.","YouTube",negative,direct-complaint
+DS-026,"This was never worth the premium subscription price, feeling ripped off.","Reddit",negative,negation-positive
+DS-027,"Awful user experience, confusing menus and broken search functionality.","Twitter",negative,direct-complaint
+DS-028,"The new build is full of errors and broke our continuous integration pipeline completely.","LinkedIn",negative,direct-complaint
+DS-029,"Worst purchase I made this year, defective hardware and zero refund support.","YouTube",negative,direct-complaint
+DS-030,"Painful latency and sluggish database queries across every single dashboard view.","Reddit",negative,direct-complaint
+DS-031,"I don't like the new interface at all, it ruined what was previously simple.","Facebook",negative,negation-positive
+DS-032,"Critical security vulnerability reported, user data was leaked and exposed publicly.","Twitter",negative,direct-complaint
+DS-033,"Frustrating cancellation policy, hidden fees and deceptive recurring charges.","Reddit",negative,direct-complaint
+DS-034,"Completely dissatisfied with the audio quality, constant background noise and distortion.","YouTube",negative,intensifier
+DS-035,"Nightmare deployment, corrupted the local database cache and required full reinstall.","LinkedIn",negative,direct-complaint
+DS-036,"Unusable on older smartphones, heavy battery drain and frequent device overheating.","Instagram",negative,direct-complaint
+DS-037,"Version 3.4.1 has been published to npm and docker hub registries today.","Twitter",neutral,factual-announcement
+DS-038,"Scheduled server maintenance will commence at 02:00 UTC on Sunday morning.","LinkedIn",neutral,factual-announcement
+DS-039,"The conference will take place in San Francisco from October 12 to 14.","Twitter",neutral,factual-announcement
+DS-040,"The annual quarterly earnings report is scheduled for release next Tuesday.","Facebook",neutral,factual-announcement
+DS-041,"Documentation has been translated into Spanish, French, and Japanese languages.","Reddit",neutral,factual-announcement
+DS-042,"Database migration script created tables for user accounts and audit logs.","LinkedIn",neutral,factual-announcement
+DS-043,"The shipment tracking number was sent to your registered email address.","Instagram",neutral,factual-announcement
+DS-044,"Standard parcel delivery arrived via postal service at 3:15 PM today.","Facebook",neutral,factual-announcement
+DS-045,"Our support center operating hours are Monday through Friday, 9am to 6pm EST.","YouTube",neutral,factual-announcement
+DS-046,"The device includes a USB-C charging cable and basic quick-start reference guide.","Reddit",neutral,factual-announcement
+DS-047,"System requirements include four gigabytes of memory and modern web browser support.","Twitter",neutral,factual-announcement
+DS-048,"Meeting minutes and slide deck have been archived in the team repository folder.","LinkedIn",neutral,factual-announcement
+DS-049,"New API endpoint handles batch requests up to one hundred records per payload.","YouTube",neutral,factual-announcement
+DS-050,"The application is available on both desktop and mobile operating systems.","Instagram",neutral,factual-announcement

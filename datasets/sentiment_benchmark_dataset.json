@@ -1,0 +1,352 @@
+[
+  {
+    "id": "DS-001",
+    "text": "The new interface is extraordinarily fast, clean, and intuitive to navigate.",
+    "platform": "Twitter",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-002",
+    "text": "ABSOLUTELY PHENOMENAL! This is by far the best update they have ever shipped!!!",
+    "platform": "Instagram",
+    "groundTruth": "positive",
+    "category": "punctuation-emphasis"
+  },
+  {
+    "id": "DS-003",
+    "text": "Customer support resolved my ticket within five minutes, extremely helpful and friendly.",
+    "platform": "Facebook",
+    "groundTruth": "positive",
+    "category": "intensifier"
+  },
+  {
+    "id": "DS-004",
+    "text": "I have zero complaints about the battery life, it hasn't drained unexpectedly once.",
+    "platform": "Reddit",
+    "groundTruth": "positive",
+    "category": "negation-negative"
+  },
+  {
+    "id": "DS-005",
+    "text": "Solid, reliable performance every single day. Highly recommend this tool to all developers.",
+    "platform": "LinkedIn",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-006",
+    "text": "Super impressed with how smooth and responsive the charts feel on mobile.",
+    "platform": "YouTube",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-007",
+    "text": "A true masterpiece of design, flawless typography and delightful interactions.",
+    "platform": "Twitter",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-008",
+    "text": "Setup was quick and painless, worked out of the box in under two minutes.",
+    "platform": "Reddit",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-009",
+    "text": "Cannot recommend this product enough, five-star experience from beginning to end!",
+    "platform": "Facebook",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-010",
+    "text": "Loving the dark mode theme, elegant color palette and crystal clear contrast.",
+    "platform": "Instagram",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-011",
+    "text": "The export feature is a huge win for our workflow, saved us countless hours.",
+    "platform": "LinkedIn",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-012",
+    "text": "Brilliant documentation with clear examples, made onboarding a pleasure.",
+    "platform": "YouTube",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-013",
+    "text": "Not bad at all, in fact it exceeded my expectations in every way.",
+    "platform": "Twitter",
+    "groundTruth": "positive",
+    "category": "negation-negative"
+  },
+  {
+    "id": "DS-014",
+    "text": "Superb stability under heavy load, no glitches observed during peak traffic.",
+    "platform": "Reddit",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-015",
+    "text": "Really love the intuitive shortcuts and frictionless keyboard navigation!",
+    "platform": "Twitter",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-016",
+    "text": "Fast, polished, and remarkably dependable software. Kudos to the engineering team.",
+    "platform": "LinkedIn",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-017",
+    "text": "Wonderful customer care, they refunded the duplicate charge without any hassle.",
+    "platform": "Facebook",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-018",
+    "text": "Easily the most satisfying developer tool I have tested this entire quarter.",
+    "platform": "YouTube",
+    "groundTruth": "positive",
+    "category": "direct-praise"
+  },
+  {
+    "id": "DS-019",
+    "text": "App crashed three times today during checkout, completely lost my shopping cart.",
+    "platform": "Twitter",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-020",
+    "text": "HORRIBLE UPDATE! Everything is lagging, broken, and practically unusable right now!!",
+    "platform": "Reddit",
+    "groundTruth": "negative",
+    "category": "punctuation-emphasis"
+  },
+  {
+    "id": "DS-021",
+    "text": "Extremely disappointed with the customer service, waited two weeks for no resolution.",
+    "platform": "Facebook",
+    "groundTruth": "negative",
+    "category": "intensifier"
+  },
+  {
+    "id": "DS-022",
+    "text": "The software is definitely not good, slow performance and constant memory leaks.",
+    "platform": "Twitter",
+    "groundTruth": "negative",
+    "category": "negation-positive"
+  },
+  {
+    "id": "DS-023",
+    "text": "Cannot recommend this service, total waste of money and full of annoying bugs.",
+    "platform": "LinkedIn",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-024",
+    "text": "Terrible delay on order shipment, support was totally useless and unhelpful.",
+    "platform": "Instagram",
+    "groundTruth": "negative",
+    "category": "intensifier"
+  },
+  {
+    "id": "DS-025",
+    "text": "Constant glitches after the latest patch, screen freezes whenever I click export.",
+    "platform": "YouTube",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-026",
+    "text": "This was never worth the premium subscription price, feeling ripped off.",
+    "platform": "Reddit",
+    "groundTruth": "negative",
+    "category": "negation-positive"
+  },
+  {
+    "id": "DS-027",
+    "text": "Awful user experience, confusing menus and broken search functionality.",
+    "platform": "Twitter",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-028",
+    "text": "The new build is full of errors and broke our continuous integration pipeline completely.",
+    "platform": "LinkedIn",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-029",
+    "text": "Worst purchase I made this year, defective hardware and zero refund support.",
+    "platform": "YouTube",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-030",
+    "text": "Painful latency and sluggish database queries across every single dashboard view.",
+    "platform": "Reddit",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-031",
+    "text": "I don't like the new interface at all, it ruined what was previously simple.",
+    "platform": "Facebook",
+    "groundTruth": "negative",
+    "category": "negation-positive"
+  },
+  {
+    "id": "DS-032",
+    "text": "Critical security vulnerability reported, user data was leaked and exposed publicly.",
+    "platform": "Twitter",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-033",
+    "text": "Frustrating cancellation policy, hidden fees and deceptive recurring charges.",
+    "platform": "Reddit",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-034",
+    "text": "Completely dissatisfied with the audio quality, constant background noise and distortion.",
+    "platform": "YouTube",
+    "groundTruth": "negative",
+    "category": "intensifier"
+  },
+  {
+    "id": "DS-035",
+    "text": "Nightmare deployment, corrupted the local database cache and required full reinstall.",
+    "platform": "LinkedIn",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-036",
+    "text": "Unusable on older smartphones, heavy battery drain and frequent device overheating.",
+    "platform": "Instagram",
+    "groundTruth": "negative",
+    "category": "direct-complaint"
+  },
+  {
+    "id": "DS-037",
+    "text": "Version 3.4.1 has been published to npm and docker hub registries today.",
+    "platform": "Twitter",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-038",
+    "text": "Scheduled server maintenance will commence at 02:00 UTC on Sunday morning.",
+    "platform": "LinkedIn",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-039",
+    "text": "The conference will take place in San Francisco from October 12 to 14.",
+    "platform": "Twitter",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-040",
+    "text": "The annual quarterly earnings report is scheduled for release next Tuesday.",
+    "platform": "Facebook",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-041",
+    "text": "Documentation has been translated into Spanish, French, and Japanese languages.",
+    "platform": "Reddit",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-042",
+    "text": "Database migration script created tables for user accounts and audit logs.",
+    "platform": "LinkedIn",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-043",
+    "text": "The shipment tracking number was sent to your registered email address.",
+    "platform": "Instagram",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-044",
+    "text": "Standard parcel delivery arrived via postal service at 3:15 PM today.",
+    "platform": "Facebook",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-045",
+    "text": "Our support center operating hours are Monday through Friday, 9am to 6pm EST.",
+    "platform": "YouTube",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-046",
+    "text": "The device includes a USB-C charging cable and basic quick-start reference guide.",
+    "platform": "Reddit",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-047",
+    "text": "System requirements include four gigabytes of memory and modern web browser support.",
+    "platform": "Twitter",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-048",
+    "text": "Meeting minutes and slide deck have been archived in the team repository folder.",
+    "platform": "LinkedIn",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-049",
+    "text": "New API endpoint handles batch requests up to one hundred records per payload.",
+    "platform": "YouTube",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  },
+  {
+    "id": "DS-050",
+    "text": "The application is available on both desktop and mobile operating systems.",
+    "platform": "Instagram",
+    "groundTruth": "neutral",
+    "category": "factual-announcement"
+  }
+]

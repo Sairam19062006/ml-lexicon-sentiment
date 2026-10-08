@@ -1,9 +1,9 @@
-import { type FormEvent, type ReactNode, useRef, useState } from 'react';
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Link, Route, Switch, Router as WouterRouter, useLocation } from 'wouter';
 import {
   Activity, ArrowDownRight, ArrowUpRight, BarChart3, Beaker, BrainCircuit, Check,
-  ChevronRight, CircleHelp, Database, FileJson, FileSpreadsheet, Gauge, Hash,
+  ChevronRight, CircleHelp, Database, Download, FileJson, FileSpreadsheet, Gauge, Hash,
   Info, Layers3, LineChart, Menu, Network, PanelLeft, RefreshCw, Search,
   Send, Settings2, ShieldCheck, Sparkles, Table2, Target, Upload, X, Zap,
 } from 'lucide-react';
@@ -54,9 +54,27 @@ function Header({ title, eyebrow }: { title: string; eyebrow: string }) {
 }
 
 function Shell({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setLocation('/analyze');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setLocation]);
+
   return <div className="noise min-h-[100dvh] bg-background">
+    {mobileOpen && (
+      <div
+        className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
+        onClick={() => setMobileOpen(false)}
+      />
+    )}
     <aside className={cn('fixed inset-y-0 left-0 z-40 flex w-[246px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-5 text-sidebar-foreground transition-transform duration-300 lg:translate-x-0', mobileOpen ? 'translate-x-0' : '-translate-x-full')}>
       <div className="flex items-center justify-between px-2">
         <Link href="/" data-testid="link-brand" className="flex items-center gap-3">
@@ -156,6 +174,13 @@ function SignalRow({ signal }: { signal: { id: string; type: string; title: stri
   return <div data-testid={`row-signal-${signal.id}`} className="grid gap-3 py-4 sm:grid-cols-[auto_1fr_auto] sm:items-center"><div className={cn('hidden h-8 w-8 items-center justify-center border sm:flex', signal.severity === 'high' ? 'border-destructive/35 text-destructive' : signal.severity === 'medium' ? 'border-chart-3/50 text-chart-3' : 'border-border text-muted-foreground')}><Zap size={14} /></div><div><div className="mb-1 flex flex-wrap items-center gap-2"><span className="font-mono text-[9px] uppercase tracking-[.14em] text-muted-foreground">{signal.type} / {signal.platform}</span><SentimentChip value={signal.sentiment} /></div><div className="text-sm font-medium">{signal.title}</div><div className="mt-1 text-xs text-muted-foreground">{signal.detail}</div></div><div className="font-mono text-[10px] text-muted-foreground sm:text-right">{signal.time}</div></div>;
 }
 
+const SAMPLES = [
+  { label: 'Positive Review', text: 'This app is extraordinarily fast, beautifully designed, and very reliable! Highly recommended.' },
+  { label: 'Critical Issue', text: 'Horrible update! Constantly crashes on startup, endless loading bugs, and unresponsive customer support.' },
+  { label: 'Mixed Signals', text: 'Clean and elegant user interface, but the latency is noticeable and checkout is somewhat sluggish.' },
+  { label: 'Neutral Update', text: 'The engineering team released software version 3.2.0 across all regions today.' },
+];
+
 function Analyze() {
   const [text, setText] = useState('');
   const [model, setModel] = useState<Model>('logistic-regression');
@@ -168,7 +193,23 @@ function Analyze() {
       <section className="panel p-5 sm:p-7">
         <div className="mb-6 flex items-center justify-between border-b border-border pb-4"><div><div className="font-mono text-[9px] uppercase tracking-[.17em] text-accent">Inference console</div><div className="mt-1 text-sm font-medium">One post. Five lenses.</div></div><span className="font-mono text-[10px] text-muted-foreground">UTF-8 / max 10,000 chars</span></div>
         <form onSubmit={submit}>
-          <label htmlFor="analysis-text" className="mb-2 block font-mono text-[10px] uppercase tracking-[.13em] text-muted-foreground">Source text</label>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor="analysis-text" className="block font-mono text-[10px] uppercase tracking-[.13em] text-muted-foreground">Source text</label>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="font-mono text-[9px] uppercase tracking-[.12em] text-muted-foreground">Try example:</span>
+              {SAMPLES.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  data-testid={`button-sample-${s.label.toLowerCase().replace(' ', '-')}`}
+                  onClick={() => setText(s.text)}
+                  className="border border-border bg-card px-2 py-0.5 text-[10px] text-muted-foreground transition-colors hover:border-accent hover:text-foreground"
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <textarea id="analysis-text" data-testid="input-analysis-text" value={text} onChange={(event) => setText(event.target.value)} placeholder="Paste a social post, review, or transcript excerpt..." maxLength={10000} className="min-h-[230px] w-full resize-y border border-border bg-background p-4 text-sm leading-7 outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-accent focus:ring-1 focus:ring-accent/30" />
           <div className="mt-2 flex justify-between font-mono text-[10px] text-muted-foreground"><span>{text.length.toLocaleString()} / 10,000</span><span>Plain text input</span></div>
           <div className="mt-7 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end"><div><label htmlFor="analysis-model" className="mb-2 block font-mono text-[10px] uppercase tracking-[.13em] text-muted-foreground">Classification model</label><select id="analysis-model" data-testid="select-analysis-model" value={model} onChange={(event) => setModel(event.target.value as Model)} className="h-11 w-full appearance-none border border-border bg-background px-3 text-sm outline-none focus:border-accent sm:min-w-[280px]">{MODEL_VALUES.map((value) => <option key={value} value={value}>{formatModel(value)}</option>)}</select></div><button type="submit" data-testid="button-run-analysis" disabled={mutation.isPending || !text.trim()} className="flex h-11 items-center justify-center gap-2 bg-primary px-5 text-xs font-medium text-primary-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">{mutation.isPending ? <><RefreshCw size={14} className="animate-spin" />Running model</> : <><Send size={14} />Classify text</>}</button></div>
@@ -189,10 +230,257 @@ function Analyze() {
   </div>;
 }
 
+function SentimentDistributionChart({
+  summary,
+  filter,
+  onSelectFilter,
+}: {
+  summary: {
+    total: number;
+    positive: number;
+    negative: number;
+    neutral: number;
+    positivePct: number;
+    negativePct: number;
+    neutralPct: number;
+  };
+  filter: 'all' | 'positive' | 'negative' | 'neutral';
+  onSelectFilter: (filter: 'all' | 'positive' | 'negative' | 'neutral') => void;
+}) {
+  const total = Math.max(summary.total, 1);
+  const radius = 56;
+  const circ = 2 * Math.PI * radius;
+  const posStroke = (summary.positive / total) * circ;
+  const neuStroke = (summary.neutral / total) * circ;
+  const negStroke = (summary.negative / total) * circ;
+  const maxCount = Math.max(summary.positive, summary.neutral, summary.negative, 1);
+
+  return (
+    <div data-testid="module-sentiment-distribution-chart" className="mt-5 space-y-4 rounded border border-border bg-card/50 p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+        <div>
+          <div className="font-mono text-[9px] uppercase tracking-[.18em] text-accent">Pictorial representation</div>
+          <h3 className="text-base font-semibold">Dataset Sentiment Breakdown</h3>
+        </div>
+        <div className="flex items-center gap-1.5 font-mono text-[10px]">
+          <span className="text-muted-foreground">Filter comments:</span>
+          {(['all', 'positive', 'neutral', 'negative'] as const).map((key) => (
+            <button
+              key={key}
+              type="button"
+              data-testid={`button-filter-${key}`}
+              onClick={() => onSelectFilter(key)}
+              className={cn(
+                'rounded border px-2 py-0.5 uppercase transition-colors',
+                filter === key
+                  ? 'border-accent bg-accent text-accent-foreground font-semibold'
+                  : 'border-border bg-background text-muted-foreground hover:border-accent hover:text-foreground'
+              )}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* KPI Cards for Positive, Neutral, Negative */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div
+          data-testid="card-positive-comments"
+          onClick={() => onSelectFilter(filter === 'positive' ? 'all' : 'positive')}
+          className={cn(
+            'cursor-pointer rounded border p-3.5 transition-all',
+            filter === 'positive' ? 'border-chart-1 bg-chart-1/10 shadow-sm' : 'border-border bg-background hover:border-chart-1/60'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-[.12em] text-chart-1 font-semibold">Positive comments</span>
+            <span className="h-2 w-2 rounded-full bg-chart-1" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span data-testid="metric-positive-count" className="metric-number text-2xl font-bold text-chart-1">{summary.positive}</span>
+            <span className="font-mono text-xs text-muted-foreground">{formatPct(summary.positivePct)}</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-chart-1" style={{ width: `${summary.positivePct}%` }} />
+          </div>
+        </div>
+
+        <div
+          data-testid="card-neutral-comments"
+          onClick={() => onSelectFilter(filter === 'neutral' ? 'all' : 'neutral')}
+          className={cn(
+            'cursor-pointer rounded border p-3.5 transition-all',
+            filter === 'neutral' ? 'border-chart-3 bg-chart-3/10 shadow-sm' : 'border-border bg-background hover:border-chart-3/60'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-[.12em] text-chart-3 font-semibold">Neutral comments</span>
+            <span className="h-2 w-2 rounded-full bg-chart-3" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span data-testid="metric-neutral-count" className="metric-number text-2xl font-bold text-chart-3">{summary.neutral}</span>
+            <span className="font-mono text-xs text-muted-foreground">{formatPct(summary.neutralPct)}</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-chart-3" style={{ width: `${summary.neutralPct}%` }} />
+          </div>
+        </div>
+
+        <div
+          data-testid="card-negative-comments"
+          onClick={() => onSelectFilter(filter === 'negative' ? 'all' : 'negative')}
+          className={cn(
+            'cursor-pointer rounded border p-3.5 transition-all',
+            filter === 'negative' ? 'border-chart-2 bg-chart-2/10 shadow-sm' : 'border-border bg-background hover:border-chart-2/60'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase tracking-[.12em] text-chart-2 font-semibold">Negative comments</span>
+            <span className="h-2 w-2 rounded-full bg-chart-2" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <span data-testid="metric-negative-count" className="metric-number text-2xl font-bold text-chart-2">{summary.negative}</span>
+            <span className="font-mono text-xs text-muted-foreground">{formatPct(summary.negativePct)}</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="h-full bg-chart-2" style={{ width: `${summary.negativePct}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Pictorial Chart Grid: Donut Ring + Comparative Bars */}
+      <div className="grid grid-cols-1 items-center gap-6 rounded border border-border bg-background p-4 md:grid-cols-[160px_1fr]">
+        {/* Donut Chart */}
+        <div className="relative mx-auto flex h-[150px] w-[150px] items-center justify-center">
+          <svg viewBox="0 0 150 150" className="h-full w-full -rotate-90">
+            {/* Background Ring */}
+            <circle cx="75" cy="75" r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth="15" />
+            {/* Positive Segment */}
+            {posStroke > 0 && (
+              <circle
+                cx="75"
+                cy="75"
+                r={radius}
+                fill="none"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth="15"
+                strokeDasharray={`${posStroke} ${circ - posStroke}`}
+                strokeDashoffset={0}
+              />
+            )}
+            {/* Neutral Segment */}
+            {neuStroke > 0 && (
+              <circle
+                cx="75"
+                cy="75"
+                r={radius}
+                fill="none"
+                stroke="hsl(var(--chart-3))"
+                strokeWidth="15"
+                strokeDasharray={`${neuStroke} ${circ - neuStroke}`}
+                strokeDashoffset={-posStroke}
+              />
+            )}
+            {/* Negative Segment */}
+            {negStroke > 0 && (
+              <circle
+                cx="75"
+                cy="75"
+                r={radius}
+                fill="none"
+                stroke="hsl(var(--chart-2))"
+                strokeWidth="15"
+                strokeDasharray={`${negStroke} ${circ - negStroke}`}
+                strokeDashoffset={-(posStroke + neuStroke)}
+              />
+            )}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+            <span className="metric-number text-2xl font-bold">{summary.total}</span>
+            <span className="font-mono text-[9px] uppercase tracking-[.1em] text-muted-foreground">Comments</span>
+          </div>
+        </div>
+
+        {/* Comparative Volume Bars */}
+        <div className="space-y-3">
+          <div className="font-mono text-[10px] uppercase tracking-[.1em] text-muted-foreground">Volume comparison</div>
+
+          {/* Positive Bar */}
+          <div>
+            <div className="mb-1 flex justify-between text-xs font-medium">
+              <span className="flex items-center gap-1.5 text-chart-1 font-semibold">
+                <span className="h-2 w-2 rounded-full bg-chart-1" />
+                Positive
+              </span>
+              <span className="font-mono text-muted-foreground">{summary.positive} comments ({formatPct(summary.positivePct)})</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded bg-muted/60">
+              <div
+                className="h-full bg-chart-1 transition-all duration-500"
+                style={{ width: `${(summary.positive / maxCount) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Neutral Bar */}
+          <div>
+            <div className="mb-1 flex justify-between text-xs font-medium">
+              <span className="flex items-center gap-1.5 text-chart-3 font-semibold">
+                <span className="h-2 w-2 rounded-full bg-chart-3" />
+                Neutral
+              </span>
+              <span className="font-mono text-muted-foreground">{summary.neutral} comments ({formatPct(summary.neutralPct)})</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded bg-muted/60">
+              <div
+                className="h-full bg-chart-3 transition-all duration-500"
+                style={{ width: `${(summary.neutral / maxCount) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Negative Bar */}
+          <div>
+            <div className="mb-1 flex justify-between text-xs font-medium">
+              <span className="flex items-center gap-1.5 text-chart-2 font-semibold">
+                <span className="h-2 w-2 rounded-full bg-chart-2" />
+                Negative
+              </span>
+              <span className="font-mono text-muted-foreground">{summary.negative} comments ({formatPct(summary.negativePct)})</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded bg-muted/60">
+              <div
+                className="h-full bg-chart-2 transition-all duration-500"
+                style={{ width: `${(summary.negative / maxCount) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Proportional Ribbon */}
+          <div className="pt-1">
+            <div className="mb-1 flex justify-between font-mono text-[9px] uppercase tracking-[.08em] text-muted-foreground">
+              <span>Proportional distribution ribbon</span>
+              <span>100% total</span>
+            </div>
+            <div className="flex h-2 w-full overflow-hidden rounded bg-muted">
+              <div className="bg-chart-1 transition-all" style={{ width: `${summary.positivePct}%` }} title={`Positive: ${summary.positivePct}%`} />
+              <div className="bg-chart-3 transition-all" style={{ width: `${summary.neutralPct}%` }} title={`Neutral: ${summary.neutralPct}%`} />
+              <div className="bg-chart-2 transition-all" style={{ width: `${summary.negativePct}%` }} title={`Negative: ${summary.negativePct}%`} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Datasets() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [content, setContent] = useState('');
+  const [datasetModel, setDatasetModel] = useState<Model>('logistic-regression');
+  const [filter, setFilter] = useState<'all' | 'positive' | 'negative' | 'neutral'>('all');
   const upload = useUploadDataset();
   const onFile = (nextFile?: File) => {
     if (!nextFile) return;
@@ -205,8 +493,73 @@ function Datasets() {
     if (nextFile.name.toLowerCase().endsWith('.xlsx')) reader.readAsDataURL(nextFile);
     else reader.readAsText(nextFile);
   };
-  const submit = () => { if (!file || !content) return; upload.mutate({ data: { fileName: file.name, fileType: file.type || file.name.split('.').pop() || 'text/csv', content } }); };
+  const loadSampleDataset = () => {
+    const sampleCsv = `text,platform
+"The new interface is extraordinarily fast, clean, and intuitive to navigate.",Twitter
+"ABSOLUTELY PHENOMENAL! This is by far the best update they have ever shipped!!!",Instagram
+"Customer support resolved my ticket within five minutes, extremely helpful and friendly.",Facebook
+"Solid, reliable performance every single day. Highly recommend this tool to all developers.",LinkedIn
+"Super impressed with how smooth and responsive the charts feel on mobile.",YouTube
+"A true masterpiece of design, flawless typography and delightful interactions.",Twitter
+"Setup was quick and painless, worked out of the box in under two minutes.",Reddit
+"Cannot recommend this product enough, five-star experience from beginning to end!",Facebook
+"Loving the dark mode theme, elegant color palette and crystal clear contrast.",Instagram
+"The export feature is a huge win for our workflow, saved us countless hours.",LinkedIn
+"App crashed three times today during checkout, completely lost my shopping cart.",Twitter
+"HORRIBLE UPDATE! Everything is lagging, broken, and practically unusable right now!!",Reddit
+"Extremely disappointed with the customer service, waited two weeks for no resolution.",Facebook
+"The software is definitely not good, slow performance and constant memory leaks.",Twitter
+"Cannot recommend this service, total waste of money and full of annoying bugs.",LinkedIn
+"Terrible delay on order shipment, support was totally useless and unhelpful.",Instagram
+"Constant glitches after the latest patch, screen freezes whenever I click export.",YouTube
+"Awful user experience, confusing menus and broken search functionality.",Twitter
+"The new build is full of errors and broke our continuous integration pipeline completely.",LinkedIn
+"Worst purchase I made this year, defective hardware and zero refund support.",YouTube
+"Version 3.4.1 has been published to npm and docker hub registries today.",Twitter
+"Scheduled server maintenance will commence at 02:00 UTC on Sunday morning.",LinkedIn
+"The conference will take place in San Francisco from October 12 to 14.",Twitter
+"The annual quarterly earnings report is scheduled for release next Tuesday.",Facebook
+"Documentation has been translated into Spanish, French, and Japanese languages.",Reddit
+"Database migration script created tables for user accounts and audit logs.",LinkedIn
+"The shipment tracking number was sent to your registered email address.",Instagram
+"Standard parcel delivery arrived via postal service at 3:15 PM today.",Facebook
+"Our support center operating hours are Monday through Friday, 9am to 6pm EST.",YouTube
+"The device includes a USB-C charging cable and basic quick-start reference guide.",Reddit`;
+    const blob = new Blob([sampleCsv], { type: 'text/csv' });
+    const sampleFile = new File([blob], 'social_sentiment_sample_30.csv', { type: 'text/csv' });
+    setFile(sampleFile);
+    setContent(sampleCsv);
+  };
+  const submit = () => {
+    if (!file || !content) return;
+    upload.mutate({
+      data: {
+        fileName: file.name,
+        fileType: file.type || file.name.split('.').pop() || 'text/csv',
+        content,
+        ...({ model: datasetModel } as any),
+      },
+    });
+  };
   const result = upload.data;
+
+  const exportCsv = () => {
+    if (!result || !result.rows.length) return;
+    const header = 'id,text,platform,sentiment,confidence\n';
+    const csvBody = result.rows.map((r) => `"${r.id}","${r.text.replace(/"/g, '""')}","${r.platform}","${r.sentiment}",${r.confidence}`).join('\n');
+    const blob = new Blob([header + csvBody], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `classified_${result.fileName || 'dataset'}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const filteredRows = (result?.rows ?? []).filter(
+    (row) => filter === 'all' || row.sentiment === filter
+  );
+
   return <div className="animate-rise">
     <Header eyebrow="Corpus management / batch inference" title="Datasets" />
     <div className="grid gap-5 xl:grid-cols-[370px_minmax(0,1fr)]">
@@ -214,14 +567,91 @@ function Datasets() {
         <div className="mb-5"><div className="font-mono text-[9px] uppercase tracking-[.17em] text-accent">New corpus</div><h2 className="mt-1 text-lg font-semibold">Upload a dataset</h2><p className="mt-2 text-xs leading-5 text-muted-foreground">Bring a labeled or unlabeled export into the workspace. We classify the text column and return a reviewable sample.</p></div>
         <input ref={inputRef} type="file" accept=".csv,.xlsx,.json,text/csv,application/json" className="hidden" data-testid="input-dataset-file" onChange={(event) => onFile(event.target.files?.[0])} />
         <button data-testid="button-select-dataset" onClick={() => inputRef.current?.click()} className="flex min-h-[170px] w-full flex-col items-center justify-center border border-dashed border-border bg-background px-4 text-center transition-colors hover:border-accent hover:bg-accent/5"><Upload size={22} className="mb-3 text-accent" /><span className="text-sm font-medium">{file ? file.name : 'Select a file to inspect'}</span><span className="mt-2 font-mono text-[9px] uppercase tracking-[.12em] text-muted-foreground">CSV · XLSX · JSON</span></button>
-        {file && <div className="mt-4 flex items-center gap-3 border border-border bg-muted/40 p-3"><div className="flex h-8 w-8 items-center justify-center bg-card text-accent">{file.name.endsWith('.json') ? <FileJson size={16} /> : <FileSpreadsheet size={16} />}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-medium">{file.name}</div><div className="font-mono text-[9px] text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</div></div><button data-testid="button-remove-dataset" onClick={() => { setFile(null); setContent(''); }} className="text-muted-foreground hover:text-destructive" aria-label="Remove dataset"><X size={15} /></button></div>}
+        <div className="mt-3 flex items-center justify-between">
+          <button type="button" data-testid="button-load-sample-dataset" onClick={loadSampleDataset} className="text-[11px] font-mono text-accent hover:underline">
+            + Load 30-comment sample dataset
+          </button>
+          {file && <button data-testid="button-remove-dataset" onClick={() => { setFile(null); setContent(''); }} className="text-xs text-muted-foreground hover:text-destructive">Clear file</button>}
+        </div>
+        {file && <div className="mt-3 flex items-center gap-3 border border-border bg-muted/40 p-3"><div className="flex h-8 w-8 items-center justify-center bg-card text-accent">{file.name.endsWith('.json') ? <FileJson size={16} /> : <FileSpreadsheet size={16} />}</div><div className="min-w-0 flex-1"><div className="truncate text-xs font-medium">{file.name}</div><div className="font-mono text-[9px] text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</div></div><button data-testid="button-remove-dataset-x" onClick={() => { setFile(null); setContent(''); }} className="text-muted-foreground hover:text-destructive" aria-label="Remove dataset"><X size={15} /></button></div>}
+        <div className="mt-4">
+          <label htmlFor="dataset-model" className="mb-2 block font-mono text-[10px] uppercase tracking-[.13em] text-muted-foreground">Classification algorithm</label>
+          <select id="dataset-model" data-testid="select-dataset-model" value={datasetModel} onChange={(e) => setDatasetModel(e.target.value as Model)} className="h-10 w-full appearance-none border border-border bg-background px-3 text-xs outline-none focus:border-accent">
+            {MODEL_VALUES.map((value) => <option key={value} value={value}>{formatModel(value)}</option>)}
+          </select>
+        </div>
         <button data-testid="button-upload-dataset" onClick={submit} disabled={!file || !content || upload.isPending} className="mt-5 flex h-11 w-full items-center justify-center gap-2 bg-primary text-xs text-primary-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40">{upload.isPending ? <><RefreshCw size={14} className="animate-spin" />Processing rows</> : <><Zap size={14} />Classify dataset</>}</button>
         {upload.isError && <div data-testid="status-upload-error" className="mt-4 border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">The dataset could not be processed. Confirm the file format and try again.</div>}
       </section>
       <section className="panel min-w-0 p-5 sm:p-6">
-        <SectionHeading kicker="Preview / returned sample" title={result ? result.fileName : 'Awaiting a corpus'} />
+        <div className="flex items-center justify-between">
+          <SectionHeading kicker="Preview / returned sample" title={result ? result.fileName : 'Awaiting a corpus'} />
+          {result && (
+            <button
+              type="button"
+              data-testid="button-export-dataset"
+              onClick={exportCsv}
+              className="flex items-center gap-1.5 border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent hover:text-accent"
+            >
+              <Download size={13} />
+              <span>Export CSV</span>
+            </button>
+          )}
+        </div>
         {!result && <div data-testid="status-empty-dataset" className="flex min-h-[360px] flex-col items-center justify-center border border-dashed border-border bg-background/40 text-center"><Table2 size={24} className="mb-4 text-muted-foreground" /><p className="text-sm font-medium">No dataset loaded</p><p className="mt-2 max-w-[250px] text-xs leading-5 text-muted-foreground">Your classified rows and sentiment distribution will appear here after processing.</p></div>}
-        {result && <div className="animate-rise"><div className="mt-6 grid grid-cols-3 gap-2 border-y border-border py-4"><div><div className="font-mono text-[9px] uppercase text-muted-foreground">Total rows</div><div data-testid="text-dataset-total" className="metric-number mt-1 text-xl">{result.totalRows}</div></div><div><div className="font-mono text-[9px] uppercase text-muted-foreground">Processed</div><div data-testid="text-dataset-processed" className="metric-number mt-1 text-xl text-accent">{result.processedRows}</div></div><div><div className="font-mono text-[9px] uppercase text-muted-foreground">Positive</div><div className="metric-number mt-1 text-xl text-chart-1">{formatPct(result.summary.positivePct)}</div></div></div><div className="scrollbar-thin mt-5 overflow-x-auto"><table className="w-full min-w-[610px] text-left"><thead><tr className="border-b border-border font-mono text-[9px] uppercase tracking-[.12em] text-muted-foreground"><th className="pb-3 pr-4">Text sample</th><th className="pb-3 pr-4">Platform</th><th className="pb-3 pr-4">Sentiment</th><th className="pb-3 text-right">Confidence</th></tr></thead><tbody className="divide-y divide-border">{result.rows.map((row) => <tr key={row.id} data-testid={`row-dataset-${row.id}`} className="text-xs"><td className="max-w-[340px] truncate py-3 pr-4">{row.text}</td><td className="py-3 pr-4 capitalize text-muted-foreground">{row.platform}</td><td className="py-3 pr-4"><SentimentChip value={row.sentiment} /></td><td className="metric-number py-3 text-right">{formatPct(row.confidence)}</td></tr>)}</tbody></table></div></div>}
+        {result && <div className="animate-rise">
+          {/* Pictorial Representation Module */}
+          <SentimentDistributionChart
+            summary={result.summary}
+            filter={filter}
+            onSelectFilter={setFilter}
+          />
+
+          {/* Table Header with Active Filter Info */}
+          <div className="mb-3 mt-6 flex items-center justify-between border-t border-border pt-4">
+            <div className="text-xs text-muted-foreground">
+              Showing <b className="text-foreground">{filteredRows.length}</b> of {result.totalRows} observations
+              {filter !== 'all' && (
+                <span className="ml-2 inline-flex items-center gap-1 rounded bg-accent/10 px-2 py-0.5 font-mono text-[10px] text-accent">
+                  Filtered: {filter}
+                  <button type="button" onClick={() => setFilter('all')} className="ml-1 hover:text-foreground">✕</button>
+                </span>
+              )}
+            </div>
+            {filter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setFilter('all')}
+                className="text-[11px] font-mono text-muted-foreground hover:text-accent"
+              >
+                Reset to all
+              </button>
+            )}
+          </div>
+
+          <div className="scrollbar-thin overflow-x-auto">
+            <table className="w-full min-w-[610px] text-left">
+              <thead>
+                <tr className="border-b border-border font-mono text-[9px] uppercase tracking-[.12em] text-muted-foreground">
+                  <th className="pb-3 pr-4">Text sample</th>
+                  <th className="pb-3 pr-4">Platform</th>
+                  <th className="pb-3 pr-4">Sentiment</th>
+                  <th className="pb-3 text-right">Confidence</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredRows.map((row) => (
+                  <tr key={row.id} data-testid={`row-dataset-${row.id}`} className="text-xs">
+                    <td className="max-w-[340px] truncate py-3 pr-4">{row.text}</td>
+                    <td className="py-3 pr-4 capitalize text-muted-foreground">{row.platform}</td>
+                    <td className="py-3 pr-4"><SentimentChip value={row.sentiment} /></td>
+                    <td className="metric-number py-3 text-right">{formatPct(row.confidence)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>}
       </section>
     </div>
   </div>;
@@ -233,7 +663,7 @@ function Benchmarks() {
   if (benchmarks.isError) return <ErrorState onRetry={() => benchmarks.refetch()} />;
   const rows = benchmarks.data ?? [];
   const best = rows.reduce((winner, row) => row.f1 > (winner?.f1 ?? 0) ? row : winner, rows[0]);
-  return <div className="animate-rise"><Header eyebrow="Model evaluation / registry" title="Benchmarks" /><div className="mb-5 grid gap-3 sm:grid-cols-3"><MetricCard label="Models evaluated" value={`${rows.length}`} note="Common validation set" accent="ink" icon={<Beaker size={16} />} /><MetricCard label="Top F1 score" value={best ? formatPct(best.f1) : '—'} note={best ? `${best.name} leads the set` : 'No results yet'} accent="teal" icon={<Target size={16} />} /><MetricCard label="Evaluation mode" value="Macro" note="Balanced across classes" accent="amber" icon={<Layers3 size={16} />} /></div><section className="panel p-5 sm:p-7"><SectionHeading kicker="Comparative readout / higher is better" title="Model performance" /><div className="scrollbar-thin mt-7 overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead><tr className="border-b border-border font-mono text-[9px] uppercase tracking-[.14em] text-muted-foreground"><th className="pb-3">Model</th><th className="pb-3">Family</th><th className="pb-3">Accuracy</th><th className="pb-3">Precision</th><th className="pb-3">Recall</th><th className="pb-3">F1 score</th></tr></thead><tbody className="divide-y divide-border">{rows.map((row) => <tr key={row.model} data-testid={`row-benchmark-${row.model}`} className={cn('text-sm', row.model === best?.model && 'bg-accent/5')}><td className="py-4 pr-5"><div className="flex items-center gap-3"><span className={cn('flex h-7 w-7 items-center justify-center border font-mono text-[10px]', row.model === best?.model ? 'border-accent bg-accent text-accent-foreground' : 'border-border')}>{row.model === best?.model ? <Check size={13} /> : String(rows.indexOf(row) + 1).padStart(2, '0')}</span><div><div className="font-medium">{row.name}</div><div className="font-mono text-[9px] text-muted-foreground">{formatModel(row.model)}</div></div></div></td><td className="py-4 pr-5 text-xs text-muted-foreground">{row.family}</td>{(['accuracy', 'precision', 'recall', 'f1'] as const).map((key) => <td key={key} className="py-4 pr-5"><div className="flex items-center gap-3"><span className={cn('metric-number min-w-[44px] text-xs', key === 'f1' && 'font-semibold text-accent')}>{formatPct(row[key])}</span><span className="hidden h-1 w-16 bg-muted sm:block"><span className={cn('block h-full', key === 'f1' ? 'bg-accent' : 'bg-primary/50')} style={{ width: `${row[key] * 100}%` }} /></span></div></td>)}</tr>)}</tbody></table></div><div className="mt-6 flex items-start gap-3 border-l-2 border-chart-3 bg-chart-3/5 p-3 text-xs leading-5 text-muted-foreground"><Info size={15} className="mt-0.5 shrink-0 text-chart-3" />Scores reflect the latest shared evaluation set. Use the single-text console to inspect model behavior before adopting a result.</div></section></div>;
+  return <div className="animate-rise"><Header eyebrow="Model evaluation / registry" title="Benchmarks" /><div className="mb-5 grid gap-3 sm:grid-cols-3"><MetricCard label="Models evaluated" value={`${rows.length}`} note="Common validation set" accent="ink" icon={<Beaker size={16} />} /><MetricCard label="Top F1 score" value={best ? formatPct(best.f1) : '—'} note={best ? `${best.name} leads the set` : 'No results yet'} accent="teal" icon={<Target size={16} />} /><MetricCard label="Evaluation mode" value="Macro" note="Balanced across classes" accent="amber" icon={<Layers3 size={16} />} /></div><section className="panel p-5 sm:p-7"><SectionHeading kicker="Comparative readout / higher is better" title="Model performance" /><div className="scrollbar-thin mt-7 overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead><tr className="border-b border-border font-mono text-[9px] uppercase tracking-[.14em] text-muted-foreground"><th className="pb-3">Model</th><th className="pb-3">Family</th><th className="pb-3">Accuracy</th><th className="pb-3">Precision</th><th className="pb-3">Recall</th><th className="pb-3">F1 score</th></tr></thead><tbody className="divide-y divide-border">{rows.map((row) => <tr key={row.model} data-testid={`row-benchmark-${row.model}`} className={cn('text-sm', row.model === best?.model && 'bg-accent/5')}><td className="py-4 pr-5"><div className="flex items-center gap-3"><span className={cn('flex h-7 w-7 items-center justify-center border font-mono text-[10px]', row.model === best?.model ? 'border-accent bg-accent text-accent-foreground' : 'border-border')}>{row.model === best?.model ? <Check size={13} /> : String(rows.indexOf(row) + 1).padStart(2, '0')}</span><div><div className="font-medium">{row.name}</div><div className="font-mono text-[9px] text-muted-foreground">{formatModel(row.model)}</div></div></div></td><td className="py-4 pr-5 text-xs text-muted-foreground">{row.family}</td>{(['accuracy', 'precision', 'recall', 'f1'] as const).map((key) => <td key={key} className="py-4 pr-5"><div className="flex items-center gap-3"><span className={cn('metric-number min-w-[44px] text-xs', key === 'f1' && 'font-semibold text-accent')}>{formatPct(row[key])}</span><span className="hidden h-1 w-16 bg-muted sm:block"><span className={cn('block h-full', key === 'f1' ? 'bg-accent' : 'bg-primary/50')} style={{ width: `${row[key] <= 1 ? row[key] * 100 : Math.min(row[key], 100)}%` }} /></span></div></td>)}</tr>)}</tbody></table></div><div className="mt-6 flex items-start gap-3 border-l-2 border-chart-3 bg-chart-3/5 p-3 text-xs leading-5 text-muted-foreground"><Info size={15} className="mt-0.5 shrink-0 text-chart-3" />Scores reflect the latest shared evaluation set. Use the single-text console to inspect model behavior before adopting a result.</div></section></div>;
 }
 
 function Analytics() {
